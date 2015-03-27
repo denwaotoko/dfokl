@@ -1,17 +1,65 @@
 //Written by DenwaOtoko over a night of sleep deprivation
 //THIS SOFTWARE IS NOT ENDORSED NOR SUPPORTED BY NEOPLE
 //ALL RIGHTS RESERVED TO THEIR RESPECTIVE OWNERS
-
-const {Cc, Ci, Cu} = require("chrome");
+const {Cc, Ci, Cu, components} = require("chrome");
 Cu.import("resource://gre/modules/Downloads.jsm");
 const { OS } = Cu.import("resource://gre/modules/osfile.jsm", {});
-tabs = require("sdk/tabs");
 var dfolaunch = ""
 var dfoi = "" 
 var buttons = require('sdk/ui/button/action');
 var tabs = require("sdk/tabs");
 var preferences = require("sdk/simple-prefs").prefs;
 
+//Create BATCH file
+Cu.import("resource://gre/modules/NetUtil.jsm");
+Cu.import("resource://gre/modules/FileUtils.jsm");
+
+// file is nsIFile, data is a string
+
+// You can also optionally pass a flags parameter here. It defaults to
+// FileUtils.MODE_WRONLY | FileUtils.MODE_CREATE | FileUtils.MODE_TRUNCATE;
+var nsifile   = new FileUtils.File( OS.Constants.Path.tmpDir+"\\test.bat" )
+var ostream = FileUtils.openSafeFileOutputStream(nsifile);
+var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
+                createInstance(Ci.nsIScriptableUnicodeConverter);
+converter.charset = "UTF-8";
+var istream = converter.convertToInputStream("@ECHO OFF\r\n%3:\r\ncd %2\r\nstart DFO.exe %1");
+
+// The last argument (the callback) is optional.
+NetUtil.asyncCopy(istream, ostream, function(status) {
+  if (!components.isSuccessCode(status)) {
+    // Handle error!
+    return;
+  }
+
+  // Data has been written to the file.
+});
+var nsifile   = new FileUtils.File( OS.Constants.Path.tmpDir+"\\patch.bat" )
+var ostream = FileUtils.openSafeFileOutputStream(nsifile);
+var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
+                createInstance(Ci.nsIScriptableUnicodeConverter);
+converter.charset = "UTF-8";
+var istream = converter.convertToInputStream("@ECHO OFF\r\n%2:\r\ncd %1\r\nstart NeopleLauncher.exe");
+
+// The last argument (the callback) is optional.
+NetUtil.asyncCopy(istream, ostream, function(status) {
+  if (!components.isSuccessCode(status)) {
+    // Handle error!
+    return;
+  }
+
+  // Data has been written to the file.
+});
+
+//REGISTRY
+var wrk = Cc["@mozilla.org/windows-registry-key;1"]
+                    .createInstance(Ci.nsIWindowsRegKey);
+wrk.open(wrk.ROOT_KEY_CURRENT_USER,
+         "SOFTWARE\\Neople_DFO",
+         wrk.ACCESS_READ);
+var dfoDir = wrk.readStringValue("Path");
+console.log(dfoDir)
+wrk.close();
 
 //MD5 SECTION -- Used to prevent outdated clients from launching
 
@@ -58,7 +106,7 @@ var button = buttons.ActionButton({
 
 });
 button.state("window", { //disables the button to prevent accidental launch
-    disabled: true
+    //disabled: true
 });
 button.badgeColor = "#000000"
 button.badge = 0; //sets it to 0 for n0 g0
@@ -69,17 +117,17 @@ function logURL(tab) {
 	button.badgeColor = "#000";
 	button.badge = 0;
 		button.state("window", {
-					disabled: true
+					//disabled: true
 	});
-	dfoi = preferences.p1;
-	dfoi = dfoi.replace("\\", "\\\\"); //properly parses directories
+	dfoi = dfoDir;
+	//dfoi = dfoi.replace("\\", "\\\\"); //properly parses directories
 	var urly = tab.url;
 	if (urly == "https://member.dfoneople.com/launcher/login" || "https://member.dfoneople.com/launcher/main"){
 		Downloads.fetch("http://download.dfoneople.com/Patch/package.lst",OS.Path.join(OS.Constants.Path.tmpDir,
                                      "package.lst")); //Grabs a copy of the patch summary from Neople to check for file discrepancy
 		var md5remote = (md5File(OS.Path.join(OS.Constants.Path.tmpDir,"package.lst")));
 		try {
-			var md5localhash = (md5File(dfoi + "\\localpackage.lst"));
+			var md5localhash = (md5File(dfoi + "localpackage.lst"));
 			if (md5localhash == md5remote){
 				button.badgeColor = "#00FF44"; //notifies user that patch is not required, ready to login!
 				console.log("No patch required!");
@@ -102,7 +150,7 @@ function logURL(tab) {
 				button.badge = 0;
 				button.badgeColor = "#FF0000";
 				button.state("window", {
-					disabled: true
+					//disabled: true
 				});
 			}
 		}
@@ -111,7 +159,7 @@ function logURL(tab) {
 			button.badge = 0;
 				button.badgeColor = "#FF0000";
 				button.state("window", {
-					disabled: true
+					//disabled: true
 			});
 		}
 		if (md5localhash != md5remote){
@@ -119,12 +167,13 @@ function logURL(tab) {
 			try{
 				var file = Cc["@mozilla.org/file/local;1"]
 					.createInstance(Ci.nsIFile);
-				file.initWithPath(dfoi+"\\LauncherUpdator.exe"); //Launches patcher since game is outdated/corrupted
+				file.initWithPath(OS.Constants.Path.tmpDir+"\\patch.bat"); //Launches patcher since game is outdated/corrupted
 				var process = Cc["@mozilla.org/process/util;1"]
 					.createInstance(Ci.nsIProcess);
 				process.init(file);
-				var arg = [""];
-				process.run(false, null, null); //and away you patch
+				var dfoDrive = dfoi.replace(":\\Neople\\DFO\\","");
+				var arg = [dfoi,dfoDrive];
+				process.run(false, arg, arg.length); //and away you patch
 			}
 			catch(err){
 				button.badgeColor = "#000";
@@ -142,20 +191,36 @@ function setdfolaunch(heh){ //heh
 }
 
 function handleClick(state){
+	var tabs = require('sdk/tabs');
+	var urly = tabs.activeTab.url;
+	console.log(urly);
+	if (urly == "https://member.dfoneople.com/launcher/main"){
+		launchDFO();
+	}
+	else{
+		tabs.open("https://member.dfoneople.com/launcher/login");
+	}
+}
+
+function launchDFO(){
 		dfolaunch = dfolaunch.replace('dfoglobal://0/','') //removes extra crap
 		dfolaunch = dfolaunch.replace('/','?') //replaces /'s with ?'s
 		dfolaunch = "9?52.0.226.21?7101?" + dfolaunch + "?0?0?0?0?0?2?0?0?0?0?0?0?0" //adds IP/PORT info, might change idk hope not
 		var file = Cc["@mozilla.org/file/local;1"]
 			.createInstance(Ci.nsIFile);
-		file.initWithPath(dfoi+"\\test.bat"); //passes parameters to batch file to launch DFO, since DFO doesn't like being directly launched
+			
+		
+		//Downloads.fetch("http://pastebin.com/raw.php?i=xY4hSGVH",OS.Path.join(OS.Constants.Path.tmpDir,
+        //                             "test.bat")); //Grabs a copy of the patch summary from Neople to check for file discrepancy
+		file.initWithPath(OS.Constants.Path.tmpDir+"\\test.bat"); //passes parameters to batch file to launch DFO, since DFO doesn't like being directly launched
 		var process = Cc["@mozilla.org/process/util;1"]
 			.createInstance(Ci.nsIProcess);
 		process.init(file);
-		var arg = [dfolaunch,dfoi+"\\\\",preferences.p2];
+		var dfoDrive = dfoi.replace(":\\Neople\\DFO\\","");
+		console.log(dfoDrive);
+		var arg = [dfolaunch,dfoi,dfoDrive];
 		process.run(false, arg, arg.length); //and away you go
 }
-
-
 
 
 

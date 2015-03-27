@@ -5,17 +5,5 @@
   "description": "Unofficial FF-Based DFOG Launcher",
   "author": "",
   "license": "MPL 2.0",
-  "version": "0.1",
-  "preferences": [{
-        "name": "p1",
-        "title": "DFO Installation Path",
-        "type": "string",
-        "value": "C:\\\\Neople\\\\DFO"
-    },
-    {
-        "name": "p2",
-        "title": "What drive is it on?",
-        "type": "string",
-        "value": "C"
-    }]
+  "version": "0.2"
 }
