@@ -39,7 +39,7 @@ var ostream = FileUtils.openSafeFileOutputStream(nsifile);
 var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
                 createInstance(Ci.nsIScriptableUnicodeConverter);
 converter.charset = "UTF-8";
-var istream = converter.convertToInputStream("@ECHO OFF\r\n%2:\r\ncd %1\r\nstart NeopleLauncher.exe");
+var istream = converter.convertToInputStream("@ECHO OFF\r\n%2:\r\ncd %1\r\nstart LauncherUpdator.exe");
 
 // The last argument (the callback) is optional.
 NetUtil.asyncCopy(istream, ostream, function(status) {
@@ -162,24 +162,26 @@ function logURL(tab) {
 					//disabled: true
 			});
 		}
-		if (md5localhash != md5remote){
-			console.log("Launching updater");
-			try{
-				var file = Cc["@mozilla.org/file/local;1"]
-					.createInstance(Ci.nsIFile);
-				file.initWithPath(OS.Constants.Path.tmpDir+"\\patch.bat"); //Launches patcher since game is outdated/corrupted
-				var process = Cc["@mozilla.org/process/util;1"]
-					.createInstance(Ci.nsIProcess);
-				process.init(file);
-				var dfoDrive = dfoi.replace(":\\Neople\\DFO\\","");
-				var arg = [dfoi,dfoDrive];
-				process.run(false, arg, arg.length); //and away you patch
+		if (urly == "https://member.dfoneople.com/launcher/login"){
+			if (md5localhash != md5remote){
+				console.log("Launching updater");
+				try{
+					var file = Cc["@mozilla.org/file/local;1"]
+						.createInstance(Ci.nsIFile);
+					file.initWithPath(OS.Constants.Path.tmpDir+"\\patch.bat"); //Launches patcher since game is outdated/corrupted
+					var process = Cc["@mozilla.org/process/util;1"]
+						.createInstance(Ci.nsIProcess);
+					process.init(file);
+					var dfoDrive = dfoi.replace(":\\Neople\\DFO\\","");
+					var arg = [dfoi,dfoDrive];
+					process.run(false, arg, arg.length); //and away you patch
+				}
+				catch(err){
+					button.badgeColor = "#000";
+					button.badge = 0;
+					console.log("Game directory not set?");
+				}	
 			}
-			catch(err){
-				button.badgeColor = "#000";
-				button.badge = 0;
-				console.log("Game directory not set?");
-			}	
 		}
 	}
 	//console.log(md5localhash);
