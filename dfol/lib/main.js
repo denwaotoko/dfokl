@@ -172,7 +172,7 @@ function logURL(tab) {
 					var process = Cc["@mozilla.org/process/util;1"]
 						.createInstance(Ci.nsIProcess);
 					process.init(file);
-					var dfoDrive = dfoi.replace(":\\Neople\\DFO\\","");
+					var dfoDrive = dfoi.substring(0, dfoi.indexOf(':'));
 					var arg = [dfoi,dfoDrive];
 					process.run(false, arg, arg.length); //and away you patch
 				}
@@ -218,7 +218,7 @@ function launchDFO(){
 		var process = Cc["@mozilla.org/process/util;1"]
 			.createInstance(Ci.nsIProcess);
 		process.init(file);
-		var dfoDrive = dfoi.replace(":\\Neople\\DFO\\","");
+		var dfoDrive = dfoi.substring(0, dfoi.indexOf(':'));
 		console.log(dfoDrive);
 		var arg = [dfolaunch,dfoi,dfoDrive];
 		process.run(false, arg, arg.length); //and away you go
