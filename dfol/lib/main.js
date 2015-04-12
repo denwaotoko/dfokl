@@ -111,25 +111,11 @@ button.state("window", { //disables the button to prevent accidental launch
 button.badgeColor = "#000000"
 button.badge = 0; //sets it to 0 for n0 g0
 //
+
 require("sdk/tabs").on("ready", logURL);
 var self = require("sdk/self");
 
 
-function changeH3(isGamePatched){
-	var pageMod = require("sdk/page-mod");
-	if(isGamePatched == false){
-			pageMod.PageMod({
-				include: "*.dfoneople.com",
-				contentScript: ' document.getElementsByTagName("h3")[0].innerHTML = "Outdated! Close, reopen page once patcher is done!"; '
-		});
-	}
-	else{
-			pageMod.PageMod({
-				include: "*.dfoneople.com",
-				contentScript: ' document.getElementsByTagName("h3")[0].innerHTML = "Unofficial DFO Firefox Launcher";'
-		});
-	}
-}
 
 function logURL(tab) {
 	button.badgeColor = "#000";
@@ -140,7 +126,7 @@ function logURL(tab) {
 	dfoi = dfoDir;
 	//dfoi = dfoi.replace("\\", "\\\\"); //properly parses directories
 	var urly = tab.url;
-	changeH3(true);
+	
 	if (urly == "https://member.dfoneople.com/launcher/login" || "https://member.dfoneople.com/launcher/main"){
 		Downloads.fetch("http://download.dfoneople.com/Patch/package.lst",OS.Path.join(OS.Constants.Path.tmpDir,
                                      "package.lst")); //Grabs a copy of the patch summary from Neople to check for file discrepancy
@@ -148,15 +134,15 @@ function logURL(tab) {
 		try {
 			var md5localhash = (md5File(dfoi + "localpackage.lst"));
 			if (md5localhash == md5remote){
-				changeH3(true);
+				
 				button.badgeColor = "#00FF44"; //notifies user that patch is not required, ready to login!
 				console.log("No patch required!");
-				var worker = require("sdk/tabs").activeTab.attach({
-						contentScriptFile: self.data.url("dfolhelper.js") //idk why I bothered to separate it
-				});
 				console.log(tab.url);
 				var urlx = tab.url;
 				if (urlx == "https://member.dfoneople.com/launcher/main"){ //if we are at post-login, allow DFO to launch
+					var worker = require("sdk/tabs").activeTab.attach({
+							contentScriptFile: self.data.url("dfolhelper.js") //idk why I bothered to separate it
+					});
 					//button.label("Launch DFOG!")
 					//console.log("We are on the page.");
 					button.state("window", {
@@ -180,7 +166,9 @@ function logURL(tab) {
 		}
 		catch(err){
 			console.log("Compare FAILED");
-			changeH3(false);
+			var worker = require("sdk/tabs").activeTab.attach({
+							contentScriptFile: self.data.url("headerchanger2.js") //idk why I bothered to separate it
+			});
 			button.badge = 0;
 				button.badgeColor = "#FF0000";
 				button.state("window", {
@@ -190,7 +178,6 @@ function logURL(tab) {
 		if (urly == "https://member.dfoneople.com/launcher/login"){
 			if (md5localhash != md5remote){
 				console.log("Launching updater");
-				changeH3(false);
 				try{
 					var file = Cc["@mozilla.org/file/local;1"]
 						.createInstance(Ci.nsIFile);
@@ -207,6 +194,11 @@ function logURL(tab) {
 					button.badge = 0;
 					console.log("Game directory not set?");
 				}	
+			}
+			if (md5localhash == md5remote){
+				var worker = require("sdk/tabs").activeTab.attach({
+								contentScriptFile: self.data.url("headerchanger1.js") //idk why I bothered to separate it
+				});
 			}
 		}
 	}
