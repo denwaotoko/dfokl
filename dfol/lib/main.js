@@ -4,6 +4,11 @@
 const {Cc, Ci, Cu, components} = require("chrome");
 Cu.import("resource://gre/modules/Downloads.jsm");
 const { OS } = Cu.import("resource://gre/modules/osfile.jsm", {});
+
+//Easily change in the future in case Neople changes things around
+const ip = "52.0.226.21"
+const port = "7101"
+
 var dfolaunch = ""
 var dfoi = "" 
 var buttons = require('sdk/ui/button/action');
@@ -127,12 +132,16 @@ function logURL(tab) {
 	//dfoi = dfoi.replace("\\", "\\\\"); //properly parses directories
 	var urly = tab.url;
 	
-	if (urly == "https://member.dfoneople.com/launcher/login" || "https://member.dfoneople.com/launcher/main"){
-		Downloads.fetch("http://download.dfoneople.com/Patch/package.lst",OS.Path.join(OS.Constants.Path.tmpDir,
-                                     "package.lst")); //Grabs a copy of the patch summary from Neople to check for file discrepancy
-		var md5remote = (md5File(OS.Path.join(OS.Constants.Path.tmpDir,"package.lst")));
+	if (urly == "https://member.dfoneople.com/launcher/login" || "https://member.dfoneople.com/launcher/main" || urly == "https://member.dfoneople.com/maintenance/launcher"){ 
+	//I realized I needed the urly before the 2nd OR, but I'm too scared to remove it at this point
+		console.log("Grabbing package.lst")
+		Downloads.fetch("http://download.dfoneople.com/Patch/version.ini",OS.Path.join(OS.Constants.Path.tmpDir,
+                                     "version.ini")); //Grabs a copy of the patch summary from Neople to check for file discrepancy
+		var md5remote = (md5File(OS.Path.join(OS.Constants.Path.tmpDir,"version.ini")));
 		try {
-			var md5localhash = (md5File(dfoi + "localpackage.lst"));
+			var md5localhash = (md5File(dfoi + "version.ini"));
+			console.log("Local " + md5localhash)
+			console.log("Remote " + md5remote)
 			if (md5localhash == md5remote){
 				
 				button.badgeColor = "#00FF44"; //notifies user that patch is not required, ready to login!
@@ -160,6 +169,7 @@ function logURL(tab) {
 				button.state("window", {
 					//disabled: true
 				});
+				console.log("DFO not patched")
 				
 			}
 			
@@ -201,6 +211,9 @@ function logURL(tab) {
 				});
 			}
 		}
+		else if (urly == "https://member.dfoneople.com/maintenance/launcher"){
+			
+		}
 	}
 	//console.log(md5localhash);
 	//console.log(md5remote);
@@ -217,7 +230,7 @@ function handleClick(state){
 	if (urly == "https://member.dfoneople.com/launcher/main"){
 		launchDFO();
 	}
-	else if (urly == "https://member.dfoneople.com/launcher/login"){
+	else if (urly == "https://member.dfoneople.com/launcher/login" || urly == "https://member.dfoneople.com/maintenance/launcher"){
 		
 	}
 	else {
@@ -228,7 +241,7 @@ function handleClick(state){
 function launchDFO(){
 		dfolaunch = dfolaunch.replace('dfoglobal://0/','') //removes extra crap
 		dfolaunch = dfolaunch.replace('/','?') //replaces /'s with ?'s
-		dfolaunch = "9?52.0.226.21?7101?" + dfolaunch + "?0?0?0?0?0?2?0?0?0?0?0?0?0" //adds IP/PORT info, might change idk hope not
+		dfolaunch = "9?" + ip + "?" + port + "?" + dfolaunch + "?0?0?0?0?0?2?0?0?0?0?0?0?0" //adds IP/PORT info, might change idk hope not
 		var file = Cc["@mozilla.org/file/local;1"]
 			.createInstance(Ci.nsIFile);
 			
