@@ -5,5 +5,31 @@
   "description": "Unofficial FF-Based DFOG Launcher",
   "author": "",
   "license": "MPL 2.0",
-  "version": "0.24"
+  "version": "0.27",
+  "preferences": [{
+        "title": "Email Address",
+        "name": "accemail",
+        "type": "string",
+        "value": ""
+    },
+    {
+        "title": "Account Password",
+        "name": "accpass",
+        "type": "string",
+        "value": ""
+    },
+	{
+    "title": "Auto Fill",
+    "name": "autoFill",
+    "description": "Enables or disables automatic credential filling",
+    "type": "bool",
+    "value": false
+	},
+	{
+    "title": "Auto Login",
+    "name": "autoLogin",
+    "description": "Enables or disables automatic login",
+    "type": "bool",
+    "value": false
+	}]
 }

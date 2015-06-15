@@ -63,7 +63,7 @@ wrk.open(wrk.ROOT_KEY_CURRENT_USER,
          "SOFTWARE\\Neople_DFO",
          wrk.ACCESS_READ);
 var dfoDir = wrk.readStringValue("Path");
-console.log(dfoDir)
+//console.log(dfoDir)
 wrk.close();
 
 //MD5 SECTION -- Used to prevent outdated clients from launching
@@ -134,26 +134,27 @@ function logURL(tab) {
 	
 	if (urly == "https://member.dfoneople.com/launcher/login" || "https://member.dfoneople.com/launcher/main" || urly == "https://member.dfoneople.com/maintenance/launcher"){ 
 	//I realized I needed the urly before the 2nd OR, but I'm too scared to remove it at this point
-		console.log("Grabbing package.lst")
-		Downloads.fetch("http://download.dfoneople.com/Patch/version.ini",OS.Path.join(OS.Constants.Path.tmpDir,
-                                     "version.ini")); //Grabs a copy of the patch summary from Neople to check for file discrepancy
-		var md5remote = (md5File(OS.Path.join(OS.Constants.Path.tmpDir,"version.ini")));
+		//console.log("Grabbing package.lst")
+		Downloads.fetch("http://download.dfoneople.com/Patch/package.lst", dfoi + "package.lst"); //Grabs a copy of the patch summary from Neople to check for file discrepancy
+		var md5remote = (md5File(dfoi + "package.lst"));
 		try {
-			var md5localhash = (md5File(dfoi + "version.ini"));
-			console.log("Local " + md5localhash)
-			console.log("Remote " + md5remote)
+			
+			var md5localhash = (md5File(dfoi + "localpackage.lst"));
+			//console.log("Remote " + md5remote)
+			//console.log("Local " + md5localhash)
+			
 			if (md5localhash == md5remote){
 				
 				button.badgeColor = "#00FF44"; //notifies user that patch is not required, ready to login!
-				console.log("No patch required!");
-				console.log(tab.url);
+				//console.log("No patch required!");
+				//console.log(tab.url);
 				var urlx = tab.url;
 				if (urlx == "https://member.dfoneople.com/launcher/main"){ //if we are at post-login, allow DFO to launch
 					var worker = require("sdk/tabs").activeTab.attach({
 							contentScriptFile: self.data.url("dfolhelper.js") //idk why I bothered to separate it
 					});
 					//button.label("Launch DFOG!")
-					//console.log("We are on the page.");
+					////console.log("We are on the page.");
 					button.state("window", {
 						disabled: false,
 						label: ("Launch DFOG!")
@@ -169,13 +170,13 @@ function logURL(tab) {
 				button.state("window", {
 					//disabled: true
 				});
-				console.log("DFO not patched")
+				//console.log("DFO not patched")
 				
 			}
 			
 		}
 		catch(err){
-			console.log("Compare FAILED");
+			//console.log("Compare FAILED");
 			var worker = require("sdk/tabs").activeTab.attach({
 							contentScriptFile: self.data.url("headerchanger2.js") //idk why I bothered to separate it
 			});
@@ -187,7 +188,7 @@ function logURL(tab) {
 		}
 		if (urly == "https://member.dfoneople.com/launcher/login"){
 			if (md5localhash != md5remote){
-				console.log("Launching updater");
+				//console.log("Launching updater");
 				try{
 					var file = Cc["@mozilla.org/file/local;1"]
 						.createInstance(Ci.nsIFile);
@@ -202,31 +203,54 @@ function logURL(tab) {
 				catch(err){
 					button.badgeColor = "#000";
 					button.badge = 0;
-					console.log("Game directory not set?");
+					//console.log("Game directory not set?");
 				}	
 			}
 			if (md5localhash == md5remote){
 				var worker = require("sdk/tabs").activeTab.attach({
 								contentScriptFile: self.data.url("headerchanger1.js") //idk why I bothered to separate it
 				});
+				
+				var autoFill = preferences.autoFill;
+				var autoLogin = preferences.autoLogin;
+				if (autoFill == true){
+					var testStr = "document.getElementById('e_mail').value = '" + preferences.accemail + "'";
+					var testStr2 = "document.getElementById('pw').value = '" + preferences.accpass + "'";
+					//console.log(testStr);
+					//console.log(testStr2);
+					var contentScriptString = String(testStr);
+					var contentScriptString2 = String(testStr2);
+					
+					tabs.activeTab.attach({
+						contentScript: [contentScriptString2, contentScriptString]
+					});
+					if (autoLogin == true){
+						var worker = require("sdk/tabs").activeTab.attach({
+								contentScriptFile: self.data.url("autologin.js") //it works !
+						});
+					}
+					
+				}
+				
+				
 			}
 		}
 		else if (urly == "https://member.dfoneople.com/maintenance/launcher"){
 			
 		}
 	}
-	//console.log(md5localhash);
-	//console.log(md5remote);
+	////console.log(md5localhash);
+	////console.log(md5remote);
 }
 function setdfolaunch(heh){ //heh
 	dfolaunch = heh;
-	//console.log(tab.url);
+	////console.log(tab.url);
 }
 
 function handleClick(state){
 	var tabs = require('sdk/tabs');
 	var urly = tabs.activeTab.url;
-	console.log(urly);
+	//console.log(urly);
 	if (urly == "https://member.dfoneople.com/launcher/main"){
 		launchDFO();
 	}
@@ -253,7 +277,7 @@ function launchDFO(){
 			.createInstance(Ci.nsIProcess);
 		process.init(file);
 		var dfoDrive = dfoi.substring(0, dfoi.indexOf(':'));
-		console.log(dfoDrive);
+		//console.log(dfoDrive);
 		var arg = [dfolaunch,dfoi,dfoDrive];
 		process.run(false, arg, arg.length); //and away you go
 }

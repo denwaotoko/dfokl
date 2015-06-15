@@ -9,5 +9,7 @@ function addElement() {
   newdiv.setAttribute('id',divIdName);
   newdiv.innerHTML = '<b>By using this page outside of the official launcher,<br> you are willingly using an unofficial method and have read the disclaimer <a href=http://www.dfonexus.com/threads/firefox-dfo-launcher.2870>shown Here!</a>';
   ni.appendChild(newdiv);
+  
 }
 addElement()
+
