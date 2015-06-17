@@ -131,12 +131,12 @@ function logURL(tab) {
 	dfoi = dfoDir;
 	//dfoi = dfoi.replace("\\", "\\\\"); //properly parses directories
 	var urly = tab.url;
-	
-	if (urly == "https://member.dfoneople.com/launcher/login" || "https://member.dfoneople.com/launcher/main" || urly == "https://member.dfoneople.com/maintenance/launcher"){ 
+	//console.log(urly)
+	if (urly == "https://member.dfoneople.com/launcher/login" || urly == "https://member.dfoneople.com/launcher/main" || urly == "https://member.dfoneople.com/maintenance/launcher"){ 
 	//I realized I needed the urly before the 2nd OR, but I'm too scared to remove it at this point
 		//console.log("Grabbing package.lst")
-		Downloads.fetch("http://download.dfoneople.com/Patch/package.lst", dfoi + "package.lst"); //Grabs a copy of the patch summary from Neople to check for file discrepancy
-		var md5remote = (md5File(dfoi + "package.lst"));
+		Downloads.fetch("http://download.dfoneople.com/Patch/package.lst", dfoi + "XignCode\\package.lst"); //Grabs a copy of the patch summary from Neople to check for file discrepancy
+		var md5remote = (md5File(dfoi + "XignCode\\package.lst"));
 		try {
 			
 			var md5localhash = (md5File(dfoi + "localpackage.lst"));
